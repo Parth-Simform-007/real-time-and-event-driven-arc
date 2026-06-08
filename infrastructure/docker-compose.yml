@@ -1,0 +1,206 @@
+version: '3.8'
+
+services:
+  # ─── Message Broker ────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: ridewave-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Databases (one per service — DB isolation rule) ─────────────────────
+  db-users:
+    image: postgres:15-alpine
+    container_name: ridewave-db-users
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: ridewave_users
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_users_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-rides:
+    image: postgres:15-alpine
+    container_name: ridewave-db-rides
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: ridewave_rides
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_rides_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-payments:
+    image: postgres:15-alpine
+    container_name: ridewave-db-payments
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_DB: ridewave_payments
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_payments_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-notifications:
+    image: postgres:15-alpine
+    container_name: ridewave-db-notifications
+    ports:
+      - '5435:5432'
+    environment:
+      POSTGRES_DB: ridewave_notifications
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_notifications_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Application Services ─────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: ridewave-api-gateway
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-ridewave-dev-secret}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      USER_SERVICE_URL: http://user-service:3001
+      RIDE_SERVICE_URL: http://ride-service:3002
+      PAYMENT_SERVICE_URL: http://payment-service:3003
+      USER_SERVICE_GRPC_URL: user-service:50051
+    depends_on:
+      - user-service
+      - ride-service
+
+  user-service:
+    build:
+      context: ..
+      dockerfile: apps/user-service/Dockerfile
+    container_name: ridewave-user-service
+    ports:
+      - '3001:3001'
+      - '50051:50051'
+    environment:
+      PORT: 3001
+      GRPC_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET:-ridewave-dev-secret}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      DB_HOST: db-users
+      DB_PORT: 5432
+      DB_NAME: ridewave_users
+      DB_USER: postgres
+      DB_PASS: postgres
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      db-users:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  ride-service:
+    build:
+      context: ..
+      dockerfile: apps/ride-service/Dockerfile
+    container_name: ridewave-ride-service
+    ports:
+      - '3002:3002'
+    environment:
+      PORT: 3002
+      DB_HOST: db-rides
+      DB_PORT: 5432
+      DB_NAME: ridewave_rides
+      DB_USER: postgres
+      DB_PASS: postgres
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      USER_SERVICE_GRPC_URL: user-service:50051
+    depends_on:
+      db-rides:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  payment-service:
+    build:
+      context: ..
+      dockerfile: apps/payment-service/Dockerfile
+    container_name: ridewave-payment-service
+    ports:
+      - '3003:3003'
+    environment:
+      PORT: 3003
+      DB_HOST: db-payments
+      DB_PORT: 5432
+      DB_NAME: ridewave_payments
+      DB_USER: postgres
+      DB_PASS: postgres
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      db-payments:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: apps/notification-service/Dockerfile
+    container_name: ridewave-notification-service
+    ports:
+      - '3004:3004'
+    environment:
+      PORT: 3004
+      DB_HOST: db-notifications
+      DB_PORT: 5432
+      DB_NAME: ridewave_notifications
+      DB_USER: postgres
+      DB_PASS: postgres
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      db-notifications:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq_data:
+  db_users_data:
+  db_rides_data:
+  db_payments_data:
+  db_notifications_data:

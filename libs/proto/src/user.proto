@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc ValidateToken (ValidateTokenRequest)  returns (ValidateTokenResponse);
+  rpc GetUser       (GetUserRequest)        returns (UserResponse);
+  rpc GetDriver     (GetDriverRequest)      returns (DriverResponse);
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool   valid  = 1;
+  string userId = 2;
+  string email  = 3;
+  string role   = 4;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message UserResponse {
+  string id       = 1;
+  string email    = 2;
+  string fullName = 3;
+  string role     = 4;
+  bool   isActive = 5;
+}
+
+message GetDriverRequest {
+  string driverId = 1;
+}
+
+message DriverResponse {
+  string id       = 1;
+  string fullName = 2;
+  bool   isActive = 3;
+  string role     = 4;
+}
