@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor, ResponseInterceptor, AllExceptionsFilter } from '@ridewave/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger('ride-service');
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.useGlobalInterceptors(new LoggingInterceptor('ride-service'), new ResponseInterceptor());
@@ -21,18 +22,18 @@ async function bootstrap() {
     customSiteTitle: 'RideWave — Ride Service Docs',
   });
   const port = process.env.RIDER_PORT || 3002;
-  await app.listen(port);
+  await app.listen(port, '127.0.0.1');
 
-  console.log('========================================');
-  console.log('  Ride Service started');
-  console.log('========================================');
-  console.log(`  URL        : http://localhost:${port}/api`);
-  console.log(`  Docs       : http://localhost:${port}/docs`);
-  console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(
+  logger.log('========================================');
+  logger.log('  Ride Service started');
+  logger.log('========================================');
+  logger.log(`  URL        : http://localhost:${port}/api`);
+  logger.log(`  Docs       : http://localhost:${port}/docs`);
+  logger.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(
     `  Database   : postgres://${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'ridewave_rides'}`,
   );
-  console.log(`  RabbitMQ   : ${process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'}`);
-  console.log('========================================');
+  logger.log(`  RabbitMQ   : ${process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'}`);
+  logger.log('========================================');
 }
 bootstrap();

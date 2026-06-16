@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { LoggingInterceptor, ResponseInterceptor, AllExceptionsFilter } from '@ridewave/common';
@@ -7,6 +7,7 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger('user-service');
   const app = await NestFactory.create(AppModule);
 
   const grpcPort = process.env.GRPC_PORT ?? 50051;
@@ -15,7 +16,7 @@ async function bootstrap() {
     options: {
       package: 'user',
       protoPath: join(process.cwd(), 'libs/proto/src/user.proto'),
-      url: `0.0.0.0:${grpcPort}`,
+      url: `127.0.0.1:${grpcPort}`,
     },
   });
   await app.startAllMicroservices();
@@ -34,18 +35,18 @@ async function bootstrap() {
     customSiteTitle: 'RideWave — User Service Docs',
   });
   const port = process.env.USER_PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '127.0.0.1');
 
-  console.log('========================================');
-  console.log('  User Service started');
-  console.log('========================================');
-  console.log(`  URL        : http://localhost:${port}/api`);
-  console.log(`  Docs       : http://localhost:${port}/docs`);
-  console.log(`  gRPC       : 0.0.0.0:${grpcPort}`);
-  console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(
+  logger.log('========================================');
+  logger.log('  User Service started');
+  logger.log('========================================');
+  logger.log(`  URL        : http://localhost:${port}/api`);
+  logger.log(`  Docs       : http://localhost:${port}/docs`);
+  logger.log(`  gRPC       : 127.0.0.1:${grpcPort}`);
+  logger.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(
     `  Database   : postgres://${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'ridewave_users'}`,
   );
-  console.log('========================================');
+  logger.log('========================================');
 }
 bootstrap();

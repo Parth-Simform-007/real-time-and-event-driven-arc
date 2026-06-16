@@ -1,0 +1,9 @@
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiZTlhZDQ0Yi1hMTQzLTQxMTgtYmJhZS05ZWFhMDZmNjIxZjQiLCJlbWFpbCI6IlJveWFsRW5AeW9wbWFpbC5jb20iLCJyb2xlIjoiUklERVIiLCJpYXQiOjE3ODE1OTk3ODQsImV4cCI6MTc4MTYwODc4NH0.4CpEhZ7UYPSGF_Dwj2V3RN0YFxHKq0GJJwY-2MmkTC4';
+  const rideId = '23ac5fbd-1e1c-4a91-a076-6777112dc071';
+  const s = io('http://localhost:3000', { auth: { token } });
+  s.on('connect', () => { console.log('connected'); s.emit('ride:join', { rideId }); });
+  s.on('ride:status:changed', d => console.log(JSON.stringify(d, null, 2)));
+  s.on('connect_error', e => console.error(e.message));
+</script>

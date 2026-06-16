@@ -1,0 +1,320 @@
+{
+  "info": {
+    "name": "RideWave",
+    "description": "All RideWave APIs — import alongside RideWave.postman_environment.json.\n\nBase URL : {{baseUrl}} (default: http://localhost:3000)\nAll protected routes use Bearer {{accessToken}} — run 'Login' first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Public routes — no token required.",
+      "item": [
+        {
+          "name": "Register Rider",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test Rider\",\n  \"email\": \"rider@test.com\",\n  \"password\": \"pass123\",\n  \"role\": \"RIDER\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.environment.set('riderId', id); console.log('riderId saved:', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register Driver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test Driver\",\n  \"email\": \"driver@test.com\",\n  \"password\": \"pass123\",\n  \"role\": \"DRIVER\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.environment.set('driverId', id); console.log('driverId saved:', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Rider)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rider@test.com\",\n  \"password\": \"pass123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const d = res.data ?? res;",
+                  "if (d.accessToken)  { pm.environment.set('accessToken',  d.accessToken);  console.log('accessToken saved');  }",
+                  "if (d.refreshToken) { pm.environment.set('refreshToken', d.refreshToken); console.log('refreshToken saved'); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Driver)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver@test.com\",\n  \"password\": \"pass123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const d = res.data ?? res;",
+                  "if (d.accessToken)  { pm.environment.set('accessToken',  d.accessToken);  console.log('accessToken saved (driver)');  }",
+                  "if (d.refreshToken) { pm.environment.set('refreshToken', d.refreshToken); console.log('refreshToken saved (driver)'); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const d = res.data ?? res;",
+                  "if (d.accessToken) { pm.environment.set('accessToken', d.accessToken); console.log('accessToken refreshed'); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "Protected — requires Bearer token.",
+      "item": [
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{riderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{riderId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rides",
+      "description": "Protected — requires Bearer token. Run in order: Request → Match → Start → Complete (or Cancel).",
+      "item": [
+        {
+          "name": "1. Request Ride",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"MG Road, Bengaluru\",\n  \"pickupLat\": 12.9758,\n  \"pickupLng\": 77.6012,\n  \"dropoffAddress\": \"Indiranagar, Bengaluru\",\n  \"dropoffLat\": 12.9784,\n  \"dropoffLng\": 77.6408\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const id = res.data?.id ?? res.id;",
+                  "if (id) { pm.environment.set('rideId', id); console.log('rideId saved:', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Match Ride (assign driver)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"estimatedArrivalMinutes\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/match",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "match"]
+            }
+          }
+        },
+        {
+          "name": "3. Start Ride",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "4a. Complete Ride",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fareAmount\": 250\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "4b. Cancel Ride",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancelledBy\": \"rider\",\n  \"reason\": \"Change of plans\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Get Ride by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/{{rideId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "{{rideId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Ride History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rides", "history"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

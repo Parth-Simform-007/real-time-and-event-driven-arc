@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor, ResponseInterceptor, AllExceptionsFilter } from '@ridewave/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger('api-gateway');
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
@@ -24,12 +25,12 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log('========================================');
-  console.log('  API Gateway started');
-  console.log('========================================');
-  console.log(`  URL        : http://localhost:${port}/api`);
-  console.log(`  Docs       : http://localhost:${port}/docs`);
-  console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('========================================');
+  logger.log('========================================');
+  logger.log('  API Gateway started');
+  logger.log('========================================');
+  logger.log(`  URL        : http://localhost:${port}/api`);
+  logger.log(`  Docs       : http://localhost:${port}/docs`);
+  logger.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log('========================================');
 }
 bootstrap();
