@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as amqplib from 'amqplib';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,11 +25,7 @@ export class EventPublisherService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async publish(
-    eventType: string,
-    payload: unknown,
-    correlationId?: string,
-  ): Promise<void> {
+  async publish(eventType: string, payload: unknown, correlationId?: string): Promise<void> {
     if (!this.channel) {
       this.logger.warn('RabbitMQ channel not ready — skipping publish');
       return;
@@ -48,15 +39,10 @@ export class EventPublisherService implements OnModuleInit, OnModuleDestroy {
       correlationId: correlationId || uuidv4(),
       payload,
     };
-    this.channel.publish(
-      RIDE_EXCHANGE,
-      eventType,
-      Buffer.from(JSON.stringify(envelope)),
-      { persistent: true },
-    );
-    this.logger.log(
-      `Published ${eventType} [eventId=${envelope.eventId}]`,
-    );
+    this.channel.publish(RIDE_EXCHANGE, eventType, Buffer.from(JSON.stringify(envelope)), {
+      persistent: true,
+    });
+    this.logger.log(`Published ${eventType} [eventId=${envelope.eventId}]`);
   }
 
   async onModuleDestroy() {

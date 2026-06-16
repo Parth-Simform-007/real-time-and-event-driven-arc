@@ -10,11 +10,7 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payment>,
   ) {}
 
-  async createPending(
-    rideId: string,
-    riderId: string,
-    correlationId: string,
-  ): Promise<Payment> {
+  async createPending(rideId: string, riderId: string, correlationId: string): Promise<Payment> {
     const payment = this.paymentRepo.create({ rideId, riderId, correlationId });
     return this.paymentRepo.save(payment);
   }

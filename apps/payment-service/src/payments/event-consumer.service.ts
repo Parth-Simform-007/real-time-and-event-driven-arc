@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as amqplib from 'amqplib';
 import { PaymentsService } from './payments.service';
 
@@ -37,9 +32,7 @@ export class EventConsumerService implements OnModuleInit, OnModuleDestroy {
         if (!msg) return;
         try {
           const envelope = JSON.parse(msg.content.toString());
-          this.logger.log(
-            `[Payment] Received ${envelope.eventType} [eventId=${envelope.eventId}]`,
-          );
+          this.logger.log(`[Payment] Received ${envelope.eventType} [eventId=${envelope.eventId}]`);
 
           if (envelope.eventType === 'ride.requested') {
             await this.paymentsService.createPending(

@@ -3,9 +3,15 @@ import { GrpcMethod } from '@nestjs/microservices';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 
-interface ValidateTokenRequest { token: string; }
-interface GetUserRequest       { userId: string; }
-interface GetDriverRequest     { driverId: string; }
+interface ValidateTokenRequest {
+  token: string;
+}
+interface GetUserRequest {
+  userId: string;
+}
+interface GetDriverRequest {
+  driverId: string;
+}
 
 @Controller()
 export class UserGrpcController {
@@ -28,7 +34,13 @@ export class UserGrpcController {
   async getUser({ userId }: GetUserRequest) {
     try {
       const user = await this.usersService.findById(userId);
-      return { id: user.id, email: user.email, fullName: user.fullName, role: user.role, isActive: user.isActive };
+      return {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        isActive: user.isActive,
+      };
     } catch {
       return { id: '', email: '', fullName: '', role: '', isActive: false };
     }

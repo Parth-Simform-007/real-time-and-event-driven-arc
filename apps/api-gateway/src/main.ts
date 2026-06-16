@@ -1,13 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoggingInterceptor } from '@ridewave/common';
+import { LoggingInterceptor, ResponseInterceptor, AllExceptionsFilter } from '@ridewave/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-  app.useGlobalInterceptors(new LoggingInterceptor('api-gateway'));
+  app.useGlobalInterceptors(new LoggingInterceptor('api-gateway'), new ResponseInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.setGlobalPrefix('api');
 
   const swaggerConfig = new DocumentBuilder()
@@ -16,12 +18,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  SwaggerModule.setup(
-    'docs',
-    app,
-    SwaggerModule.createDocument(app, swaggerConfig),
-    { customSiteTitle: 'RideWave — API Gateway Docs' },
-  );
+  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swaggerConfig), {
+    customSiteTitle: 'RideWave — API Gateway Docs',
+  });
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
@@ -31,6 +30,6 @@ async function bootstrap() {
   console.log(`  URL        : http://localhost:${port}/api`);
   console.log(`  Docs       : http://localhost:${port}/docs`);
   console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('========================================'); 
+  console.log('========================================');
 }
 bootstrap();

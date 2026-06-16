@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Get,
-  Body,
-  Param,
-  Headers,
-} from '@nestjs/common';
+import { Controller, Post, Patch, Get, Body, Param, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { RidesService } from './rides.service';
 import { RequestRideDto } from './dto/request-ride.dto';
@@ -19,10 +11,7 @@ export class RidesController {
 
   @Post()
   @ApiOperation({ summary: 'Request a ride (REQUESTED); publishes ride.requested' })
-  requestRide(
-    @Headers('x-user-id') userId: string,
-    @Body() dto: RequestRideDto,
-  ) {
+  requestRide(@Headers('x-user-id') userId: string, @Body() dto: RequestRideDto) {
     return this.ridesService.requestRide(userId, dto);
   }
 
@@ -39,11 +28,10 @@ export class RidesController {
   }
 
   @Patch(':id/complete')
-  @ApiOperation({ summary: 'Complete the ride (IN_PROGRESS → COMPLETED); publishes ride.completed' })
-  completeRide(
-    @Param('id') id: string,
-    @Body('fareAmount') fareAmount: number,
-  ) {
+  @ApiOperation({
+    summary: 'Complete the ride (IN_PROGRESS → COMPLETED); publishes ride.completed',
+  })
+  completeRide(@Param('id') id: string, @Body('fareAmount') fareAmount: number) {
     return this.ridesService.completeRide(id, fareAmount);
   }
 

@@ -9,13 +9,7 @@ export class ProxyService {
 
   constructor(private readonly http: HttpService) {}
 
-  async forward(
-    serviceUrl: string,
-    method: string,
-    path: string,
-    data?: any,
-    user?: any,
-  ) {
+  async forward(serviceUrl: string, method: string, path: string, data?: any, user?: any) {
     const correlationId = uuidv4();
     const headers: Record<string, string> = {
       'x-correlation-id': correlationId,

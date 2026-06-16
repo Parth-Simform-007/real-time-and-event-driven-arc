@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as amqplib from 'amqplib';
 import { NotificationsService } from './notifications.service';
 
@@ -51,12 +46,9 @@ export class EventConsumerService implements OnModuleInit, OnModuleDestroy {
         const { eventId, eventType, sourceService, payload } = envelope;
 
         // ── IDEMPOTENCY CHECK ────────────────────────────────────────────
-        const alreadyProcessed =
-          await this.notificationsService.isAlreadyProcessed(eventId);
+        const alreadyProcessed = await this.notificationsService.isAlreadyProcessed(eventId);
         if (alreadyProcessed) {
-          this.logger.warn(
-            `[IDEMPOTENCY] Skipping duplicate eventId=${eventId} type=${eventType}`,
-          );
+          this.logger.warn(`[IDEMPOTENCY] Skipping duplicate eventId=${eventId} type=${eventType}`);
           this.channel.ack(msg);
           return;
         }
@@ -80,26 +72,17 @@ export class EventConsumerService implements OnModuleInit, OnModuleDestroy {
           }
 
           // Mark processed AFTER successful handling to ensure at-least-once delivery
-          await this.notificationsService.markProcessed(
-            eventId,
-            eventType,
-            sourceService,
-          );
+          await this.notificationsService.markProcessed(eventId, eventType, sourceService);
           this.channel.ack(msg);
           this.logger.log(`Processed ${eventType} [eventId=${eventId}]`);
         } catch (err) {
-          this.logger.error(
-            `Failed to handle ${eventType} [eventId=${eventId}]`,
-            err,
-          );
+          this.logger.error(`Failed to handle ${eventType} [eventId=${eventId}]`, err);
           // nack without requeue — prevents infinite loop; use DLQ in Phase 2
           this.channel.nack(msg, false, false);
         }
       });
 
-      this.logger.log(
-        `Notification Service consumer started — queue: ${QUEUE}`,
-      );
+      this.logger.log(`Notification Service consumer started — queue: ${QUEUE}`);
     } catch (err) {
       this.logger.error('Failed to connect RabbitMQ consumer', err);
     }

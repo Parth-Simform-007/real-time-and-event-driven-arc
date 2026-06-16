@@ -19,11 +19,7 @@ export class NotificationsService {
     return !!existing;
   }
 
-  async markProcessed(
-    eventId: string,
-    eventType: string,
-    sourceService: string,
-  ): Promise<void> {
+  async markProcessed(eventId: string, eventType: string, sourceService: string): Promise<void> {
     const record = this.processedEventRepo.create({
       eventId,
       eventType,

@@ -11,12 +11,7 @@ export class ProxyController {
   @All('auth/*')
   async proxyAuth(@Req() req: Request, @Res() res: Response) {
     const path = '/api/' + req.path.replace(/^\/api\//, '');
-    const data = await this.proxy.forward(
-      process.env.USER_SERVICE_URL,
-      req.method,
-      path,
-      req.body,
-    );
+    const data = await this.proxy.forward(process.env.USER_SERVICE_URL, req.method, path, req.body);
     return res.json(data);
   }
 

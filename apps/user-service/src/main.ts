@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { LoggingInterceptor } from '@ridewave/common';
+import { LoggingInterceptor, ResponseInterceptor, AllExceptionsFilter } from '@ridewave/common';
 import { join } from 'path';
 import { AppModule } from './app.module';
 
@@ -20,7 +20,8 @@ async function bootstrap() {
   });
   await app.startAllMicroservices();
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-  app.useGlobalInterceptors(new LoggingInterceptor('user-service'));
+  app.useGlobalInterceptors(new LoggingInterceptor('user-service'), new ResponseInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.setGlobalPrefix('api');
 
   const swaggerConfig = new DocumentBuilder()
@@ -29,12 +30,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  SwaggerModule.setup(
-    'docs',
-    app,
-    SwaggerModule.createDocument(app, swaggerConfig),
-    { customSiteTitle: 'RideWave — User Service Docs' },
-  );
+  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swaggerConfig), {
+    customSiteTitle: 'RideWave — User Service Docs',
+  });
   const port = process.env.USER_PORT || 3001;
   await app.listen(port);
 

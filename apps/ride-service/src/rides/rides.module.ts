@@ -11,19 +11,21 @@ import { EventPublisherService } from './event-publisher.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ride]),
-    ClientsModule.registerAsync([{
-      name: 'USER_SERVICE',
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        transport: Transport.GRPC,
-        options: {
-          package: 'user',
-          protoPath: join(process.cwd(), 'libs/proto/src/user.proto'),
-          url: config.get('USER_SERVICE_GRPC_URL', 'localhost:50051'),
-        },
-      }),
-      inject: [ConfigService],
-    }]),
+    ClientsModule.registerAsync([
+      {
+        name: 'USER_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.GRPC,
+          options: {
+            package: 'user',
+            protoPath: join(process.cwd(), 'libs/proto/src/user.proto'),
+            url: config.get('USER_SERVICE_GRPC_URL', 'localhost:50051'),
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
   ],
   providers: [RidesService, EventPublisherService],
   controllers: [RidesController],

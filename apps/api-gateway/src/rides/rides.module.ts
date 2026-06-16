@@ -1,24 +1,12 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
-import { JwtStrategy } from './jwt.strategy';
+import { RidesGateway } from './rides.gateway';
+import { RidesEventConsumerService } from './rides-event-consumer.service';
 
 @Module({
   imports: [
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get('JWT_SECRET'),
-        signOptions: {
-          expiresIn: config.get('JWT_ACCESS_EXPIRES_IN', '15m'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
     ClientsModule.registerAsync([
       {
         name: 'USER_SERVICE',
@@ -35,7 +23,6 @@ import { JwtStrategy } from './jwt.strategy';
       },
     ]),
   ],
-  providers: [JwtStrategy],
-  exports: [JwtModule, PassportModule, ClientsModule],
+  providers: [RidesGateway, RidesEventConsumerService],
 })
-export class AuthModule {}
+export class RidesModule {}

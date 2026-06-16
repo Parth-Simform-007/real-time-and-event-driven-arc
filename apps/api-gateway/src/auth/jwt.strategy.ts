@@ -38,9 +38,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) implements OnModuleI
     const authHeader = request.headers['authorization'] as string;
     const token = authHeader?.split(' ')[1];
 
-    const result = await firstValueFrom(
-      this.userGrpcService.ValidateToken({ token }),
-    );
+    const result = await firstValueFrom(this.userGrpcService.ValidateToken({ token }));
 
     if (!result.valid) throw new UnauthorizedException();
     return { userId: result.userId, email: result.email, role: result.role };

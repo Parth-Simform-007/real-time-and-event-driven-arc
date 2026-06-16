@@ -78,18 +78,14 @@ export class RidesService implements OnModuleInit {
   }
 
   async matchRide(rideId: string, dto: MatchRideDto): Promise<Ride> {
-    const driver = await firstValueFrom(
-      this.userGrpcService.GetDriver({ driverId: dto.driverId }),
-    );
+    const driver = await firstValueFrom(this.userGrpcService.GetDriver({ driverId: dto.driverId }));
     if (!driver?.id || driver.role !== 'DRIVER' || !driver.isActive) {
       throw new BadRequestException('Driver not found or not eligible');
     }
 
     const ride = await this.findById(rideId);
     if (ride.status !== RideStatus.REQUESTED) {
-      throw new BadRequestException(
-        `Cannot match ride in status ${ride.status}`,
-      );
+      throw new BadRequestException(`Cannot match ride in status ${ride.status}`);
     }
     ride.status = RideStatus.MATCHED;
     ride.driverId = dto.driverId;
@@ -112,20 +108,24 @@ export class RidesService implements OnModuleInit {
   async startRide(rideId: string): Promise<Ride> {
     const ride = await this.findById(rideId);
     if (ride.status !== RideStatus.MATCHED) {
-      throw new BadRequestException(
-        `Cannot start ride in status ${ride.status}`,
-      );
+      throw new BadRequestException(`Cannot start ride in status ${ride.status}`);
     }
     ride.status = RideStatus.IN_PROGRESS;
-    return this.rideRepo.save(ride);
+    const saved = await this.rideRepo.save(ride);
+
+    await this.publisher.publish(
+      'ride.in_progress',
+      { rideId: saved.id, riderId: saved.riderId, driverId: saved.driverId },
+      ride.correlationId,
+    );
+
+    return saved;
   }
 
   async completeRide(rideId: string, fareAmount: number): Promise<Ride> {
     const ride = await this.findById(rideId);
     if (ride.status !== RideStatus.IN_PROGRESS) {
-      throw new BadRequestException(
-        `Cannot complete ride in status ${ride.status}`,
-      );
+      throw new BadRequestException(`Cannot complete ride in status ${ride.status}`);
     }
     ride.status = RideStatus.COMPLETED;
     ride.fareAmount = fareAmount;
@@ -153,13 +153,8 @@ export class RidesService implements OnModuleInit {
     reason?: string,
   ): Promise<Ride> {
     const ride = await this.findById(rideId);
-    if (
-      ride.status === RideStatus.COMPLETED ||
-      ride.status === RideStatus.CANCELLED
-    ) {
-      throw new BadRequestException(
-        `Cannot cancel ride in status ${ride.status}`,
-      );
+    if (ride.status === RideStatus.COMPLETED || ride.status === RideStatus.CANCELLED) {
+      throw new BadRequestException(`Cannot cancel ride in status ${ride.status}`);
     }
     ride.status = RideStatus.CANCELLED;
     const saved = await this.rideRepo.save(ride);
